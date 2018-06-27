@@ -4,18 +4,15 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ValueCallback;
-import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,8 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.Calendar;
-import java.util.Locale;
 
 public class WebActivity extends AppCompatActivity {
     private WebView webview;
@@ -77,46 +72,77 @@ public class WebActivity extends AppCompatActivity {
         settings.setBlockNetworkImage(true);// 不阻塞图片
         settings.setBlockNetworkLoads(false);
         webView.setVerticalScrollbarOverlay(true);
-        webView.setWebChromeClient(new WebChromeClient() {
+//        webView.setWebChromeClient(new OneWebChromeClient());
+        webView.setWebChromeClient(new TwoWebChromeClient());
 
-            /**
-             * 8(Android 2.2) <= API <= 10(Android 2.3)回调此方法
-             */
-            public void openFileChooser(ValueCallback<Uri> uploadMsg) {
-                Log.e("WangJ", "运行方法 openFileChooser-1");
-                // (2)该方法回调时说明版本API < 21，此时将结果赋值给 mUploadCallbackBelow，使之 != null
-                mUploadCallbackBelow = uploadMsg;
-                takePhoto();
-            }
+    }
 
-            /**
-             * 11(Android 3.0) <= API <= 15(Android 4.0.3)回调此方法
-             */
-            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType) {
-                Log.e("WangJ", "运行方法 openFileChooser-2 (acceptType: " + acceptType + ")");
-                openFileChooser(uploadMsg);
-            }
+    class OneWebChromeClient extends WebChromeClient {
 
-            /**
-             * 16(Android 4.1.2) <= API <= 20(Android 4.4W.2)回调此方法
-             */
-            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
-                Log.e("WangJ", "运行方法 openFileChooser-3 (acceptType: " + acceptType + "; capture: " + capture + ")");
-                openFileChooser(uploadMsg);
-            }
+        /**
+         * 8(Android 2.2) <= API <= 10(Android 2.3)回调此方法
+         */
+        public void openFileChooser(ValueCallback<Uri> uploadMsg) {
+            Log.e("WangJ", "运行方法 openFileChooser-1");
+            // (2)该方法回调时说明版本API < 21，此时将结果赋值给 mUploadCallbackBelow，使之 != null
+            mUploadCallbackBelow = uploadMsg;
+            takePhoto();
+        }
 
-            /**
-             * API >= 21(Android 5.0.1)回调此方法
-             */
-            @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                Log.e("WangJ", "运行方法 onShowFileChooser");
-                // (1)该方法回调时说明版本API >= 21，此时将结果赋值给 mUploadCallbackAboveL，使之 != null
-                mUploadCallbackAboveL = filePathCallback;
-                takePhoto();
-                return true;
-            }
-        });
+        /**
+         * 11(Android 3.0) <= API <= 15(Android 4.0.3)回调此方法
+         */
+        public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType) {
+            Log.e("WangJ", "运行方法 openFileChooser-2 (acceptType: " + acceptType + ")");
+            openFileChooser(uploadMsg);
+        }
+
+        /**
+         * 16(Android 4.1.2) <= API <= 20(Android 4.4W.2)回调此方法
+         */
+        public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
+            Log.e("WangJ", "运行方法 openFileChooser-3 (acceptType: " + acceptType + "; capture: " + capture + ")");
+            openFileChooser(uploadMsg);
+        }
+
+        /**
+         * API >= 21(Android 5.0.1)回调此方法
+         */
+        @Override
+        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
+                fileChooserParams) {
+            Log.e("WangJ", "运行方法 onShowFileChooser");
+            // (1)该方法回调时说明版本API >= 21，此时将结果赋值给 mUploadCallbackAboveL，使之 != null
+            mUploadCallbackAboveL = filePathCallback;
+            takePhoto();
+            return true;
+        }
+    }
+
+    class TwoWebChromeClient extends WebChromeClient {
+
+        // For Android < 3.0
+        public void openFileChooser(ValueCallback<Uri> uploadMsg) {
+            WebCameraHelper.getInstance().mUploadMessage = uploadMsg;
+            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+        }
+
+        // For Android > 4.1.1
+        public void openFileChooser(ValueCallback<Uri> uploadMsg,
+                                    String acceptType, String capture) {
+            WebCameraHelper.getInstance().mUploadMessage = uploadMsg;
+            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+        }
+
+        // For Android > 5.0支持多张上传
+        @Override
+        public boolean onShowFileChooser(WebView webView,
+                                         ValueCallback<Uri[]> uploadMsg,
+                                         FileChooserParams fileChooserParams) {
+            WebCameraHelper.getInstance().mUploadCallbackAboveL = uploadMsg;
+            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+            return true;
+        }
 
     }
 
@@ -151,6 +177,8 @@ public class WebActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "发生错误", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            WebCameraHelper.getInstance().onActivityResult(requestCode, resultCode, data);
         }
     }
 

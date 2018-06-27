@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class FileManager {
 
-    public static final String ROOT_NAME = "RongYifu";
+    public static final String ROOT_NAME = "ZatGo";
     public static final String LOG_NAME = "UserLog";
     public static final String CACHE_NAME = "Cache";
     public static final String IMAGE_NAME = "Image";
