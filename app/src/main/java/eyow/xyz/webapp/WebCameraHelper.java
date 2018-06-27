@@ -2,16 +2,23 @@ package eyow.xyz.webapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.view.Gravity;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 
@@ -67,7 +74,29 @@ public class WebCameraHelper {
                         }
                     }
                 });
+
         alertDialog.show();
+    }
+
+    public void showDialog(final Activity context) {
+        //设置要显示的view
+        View view = View.inflate(context,R.layout.dialog_content_normal,null);
+        //此处可按需求为各控件设置属性
+        view.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+        Dialog dialog = new Dialog(context,R.style.dialog);
+        dialog.setContentView(view);
+        Window window = dialog.getWindow();
+        //设置弹出窗口大小
+        window.setLayout(WindowManager.LayoutParams.FILL_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        //设置显示位置
+        window.setGravity(Gravity.BOTTOM);
+        //设置动画效果
+        window.setWindowAnimations(R.style.AnimBottom);
+        dialog.show();
     }
 
     /**

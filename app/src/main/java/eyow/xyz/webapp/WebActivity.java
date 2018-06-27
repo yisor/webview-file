@@ -140,7 +140,7 @@ public class WebActivity extends AppCompatActivity {
                                          ValueCallback<Uri[]> uploadMsg,
                                          FileChooserParams fileChooserParams) {
             WebCameraHelper.getInstance().mUploadCallbackAboveL = uploadMsg;
-            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+            WebCameraHelper.getInstance().showDialog(WebActivity.this);
             return true;
         }
 
