@@ -3,19 +3,18 @@ package eyow.xyz.webapp;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,6 +22,9 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 
 public class WebCameraHelper {
+
+    private Dialog dialog;
+
     private static class SingletonHolder {
         static final WebCameraHelper INSTANCE = new WebCameraHelper();
     }
@@ -78,16 +80,56 @@ public class WebCameraHelper {
         alertDialog.show();
     }
 
-    public void showDialog(final Activity context) {
+    public void showDialog(final Activity act) {
+        dialog = new Dialog(act, R.style.dialog);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setOnCancelListener(new ReOnCancelListener());
+
         //设置要显示的view
-        View view = View.inflate(context,R.layout.dialog_content_normal,null);
+        View view = View.inflate(act, R.layout.dialog_content_normal, null);
         //此处可按需求为各控件设置属性
+        view.findViewById(R.id.btn_open_camera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(act,
+                        Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    // 申请WRITE_EXTERNAL_STORAGE权限
+                    ActivityCompat
+                            .requestPermissions(
+                                    act,
+                                    new String[]{Manifest.permission.CAMERA},
+                                    TYPE_REQUEST_PERMISSION);
+                } else {
+                    toCamera(act);
+                }
+                dismissDialog();
+            }
+        });
+        view.findViewById(R.id.btn_choose_img).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(
+                        Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);// 调用android的图库
+                act.startActivityForResult(i, TYPE_GALLERY);
+                dismissDialog();
+            }
+        });
         view.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                    mUploadMessage = null;
+                }
+                if (mUploadCallbackAboveL != null) {
+                    mUploadCallbackAboveL.onReceiveValue(null);
+                    mUploadCallbackAboveL = null;
+                }
+                dismissDialog();
             }
         });
-        Dialog dialog = new Dialog(context,R.style.dialog);
+
         dialog.setContentView(view);
         Window window = dialog.getWindow();
         //设置弹出窗口大小
@@ -99,11 +141,16 @@ public class WebCameraHelper {
         dialog.show();
     }
 
+    public void dismissDialog() {
+        if (dialog != null || dialog.isShowing()) {
+            dialog.dismiss();
+        }
+    }
+
     /**
      * 点击取消的回调
      */
-    private class ReOnCancelListener implements
-            DialogInterface.OnCancelListener {
+    private class ReOnCancelListener implements DialogInterface.OnCancelListener {
 
         @Override
         public void onCancel(DialogInterface dialogInterface) {

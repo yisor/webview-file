@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         webview.setWebViewClient(webViewClient);
+        webview.loadUrl("http://47.98.56.196/#/home?token=nNwrBxS9u3JIEmGdYY0HkqUQk1E");
 
 
         findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {

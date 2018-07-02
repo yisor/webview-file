@@ -9,18 +9,20 @@
         android:id="@+id/local_webview"
         android:layout_width="match_parent"
         android:layout_height="500dp"
-        android:visibility="gone"/>
+        android:visibility="visible"/>
 
     <Button
         android:id="@+id/btn_test"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="web测试"/>
+        android:text="web测试"
+        android:visibility="gone"/>
 
     <Button
         android:id="@+id/btn_test2"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="h5测试"/>
+        android:text="h5测试"
+        android:visibility="gone"/>
 
 </LinearLayout>

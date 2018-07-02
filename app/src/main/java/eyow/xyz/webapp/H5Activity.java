@@ -55,7 +55,7 @@ public class H5Activity extends AppCompatActivity {
         setDefaultWebSettings(webview);
 
 //        webview.loadUrl("http://47.98.56.196/#/home");
-        webview.loadUrl("http://192.168.1.189:8080");
+        webview.loadUrl("http://47.98.56.196/#/home?token=nNwrBxS9u3JIEmGdYY0HkqUQk1E");
         linearLayout.addView(webview);
     }
 

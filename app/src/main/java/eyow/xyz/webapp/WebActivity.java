@@ -1,17 +1,27 @@
 package eyow.xyz.webapp;
 
+import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -22,6 +32,7 @@ import android.widget.Toast;
 import java.io.File;
 
 public class WebActivity extends AppCompatActivity {
+    private static final String TAG = "WebActivity";
     private WebView webview;
     private LinearLayout.LayoutParams params;
     private LinearLayout linearLayout;
@@ -124,14 +135,14 @@ public class WebActivity extends AppCompatActivity {
         // For Android < 3.0
         public void openFileChooser(ValueCallback<Uri> uploadMsg) {
             WebCameraHelper.getInstance().mUploadMessage = uploadMsg;
-            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+            showDialog(WebActivity.this);
         }
 
         // For Android > 4.1.1
         public void openFileChooser(ValueCallback<Uri> uploadMsg,
                                     String acceptType, String capture) {
             WebCameraHelper.getInstance().mUploadMessage = uploadMsg;
-            WebCameraHelper.getInstance().showOptions(WebActivity.this);
+            showDialog(WebActivity.this);
         }
 
         // For Android > 5.0支持多张上传
@@ -140,10 +151,29 @@ public class WebActivity extends AppCompatActivity {
                                          ValueCallback<Uri[]> uploadMsg,
                                          FileChooserParams fileChooserParams) {
             WebCameraHelper.getInstance().mUploadCallbackAboveL = uploadMsg;
-            WebCameraHelper.getInstance().showDialog(WebActivity.this);
+            showDialog(WebActivity.this);
             return true;
         }
 
+    }
+
+    public void showDialog(final Activity act) {
+        Dialog dialog = new Dialog(act, R.style.dialog);
+        dialog.setCanceledOnTouchOutside(false);
+
+        //设置要显示的view
+        View view = View.inflate(act, R.layout.dialog_content_normal, null);
+
+
+        dialog.setContentView(view);
+        Window window = dialog.getWindow();
+        //设置弹出窗口大小
+        window.setLayout(WindowManager.LayoutParams.FILL_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        //设置显示位置
+        window.setGravity(Gravity.BOTTOM);
+        //设置动画效果
+        window.setWindowAnimations(R.style.AnimBottom);
+        dialog.show();
     }
 
     /**
@@ -274,10 +304,12 @@ public class WebActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        Log.d(TAG, "onBackPressed: ");
         if (webview.canGoBack()) {
             webview.goBack();
         } else {
             finish();
         }
     }
+
 }
